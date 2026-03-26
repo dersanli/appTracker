@@ -45,11 +45,8 @@ const STATUS_OPTIONS: { value: ApplicationStatus | 'all'; label: string }[] = [
 const JOB_TYPE_OPTIONS: { value: JobType | 'all'; label: string }[] = [
   { value: 'all', label: 'All Types' },
   { value: 'permanent', label: 'Permanent' },
-  { value: 'contract', label: 'Contract' },
   { value: 'inside_ir35', label: 'Inside IR35' },
   { value: 'outside_ir35', label: 'Outside IR35' },
-  { value: 'full_time', label: 'Full Time' },
-  { value: 'part_time', label: 'Part Time' },
 ]
 
 const WORK_OPTIONS: { value: WorkArrangement | 'all'; label: string }[] = [
