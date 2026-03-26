@@ -4,7 +4,7 @@ import MDEditor from '@uiw/react-md-editor'
 import api from '@/lib/api'
 import type { ApplicationCV, CVLibraryItem } from '@/types'
 import { Button } from '@/components/ui/button'
-import { Save, Download, Copy } from 'lucide-react'
+import { Save, Download, Copy, Pencil, X } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -34,6 +34,7 @@ export function CVTab({ applicationId }: CVTabProps) {
   })
 
   const [content, setContent] = useState('')
+  const [editing, setEditing] = useState(false)
   const [libraryOpen, setLibraryOpen] = useState(false)
 
   const { data: libraryItems } = useQuery<CVLibraryItem[]>({
@@ -43,7 +44,11 @@ export function CVTab({ applicationId }: CVTabProps) {
   })
 
   useEffect(() => {
-    if (cv) setContent(cv.content)
+    if (cv) {
+      setContent(cv.content)
+    } else if (cv === null) {
+      setEditing(true)
+    }
   }, [cv])
 
   const saveMutation = useMutation({
@@ -54,6 +59,7 @@ export function CVTab({ applicationId }: CVTabProps) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['application-cv', applicationId] })
       toast.success('CV saved')
+      setEditing(false)
     },
     onError: () => toast.error('Failed to save CV'),
   })
@@ -90,71 +96,98 @@ export function CVTab({ applicationId }: CVTabProps) {
         <h3 className="text-sm font-medium text-muted-foreground">
           {cv ? cv.name : 'No CV yet — write one below or copy from library'}
         </h3>
-        <div className="flex gap-2">
-          <Dialog open={libraryOpen} onOpenChange={setLibraryOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Copy className="mr-2 h-4 w-4" />
-                Copy from Library
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Copy from CV Library</DialogTitle>
-              </DialogHeader>
-              <div className="mt-2 max-h-96 overflow-y-auto space-y-2">
-                {libraryItems?.length === 0 && (
-                  <p className="text-sm text-muted-foreground">No CVs in library.</p>
-                )}
-                {libraryItems?.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between rounded-md border p-3"
-                  >
-                    <div>
-                      <p className="text-sm font-medium">{item.name}</p>
-                      <p className="text-xs text-muted-foreground line-clamp-1">{item.content}</p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setContent(item.content)
-                        setLibraryOpen(false)
-                        toast.success(`Copied "${item.name}" — save to apply`)
-                      }}
+
+        {editing ? (
+          <div className="flex gap-2">
+            <Dialog open={libraryOpen} onOpenChange={setLibraryOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Copy className="mr-2 h-4 w-4" />
+                  Copy from Library
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Copy from CV Library</DialogTitle>
+                </DialogHeader>
+                <div className="mt-2 max-h-96 overflow-y-auto space-y-2">
+                  {libraryItems?.length === 0 && (
+                    <p className="text-sm text-muted-foreground">No CVs in library.</p>
+                  )}
+                  {libraryItems?.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between rounded-md border p-3"
                     >
-                      Copy
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </DialogContent>
-          </Dialog>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExport}
-            disabled={!cv}
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Export DOCX
-          </Button>
-          <Button size="sm" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
-            <Save className="mr-2 h-4 w-4" />
-            {saveMutation.isPending ? 'Saving...' : 'Save'}
-          </Button>
-        </div>
+                      <div>
+                        <p className="text-sm font-medium">{item.name}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">{item.content}</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setContent(item.content)
+                          setLibraryOpen(false)
+                          toast.success(`Copied "${item.name}" — save to apply`)
+                        }}
+                      >
+                        Copy
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </DialogContent>
+            </Dialog>
+            {cv && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setContent(cv.content)
+                  setEditing(false)
+                }}
+              >
+                <X className="mr-2 h-4 w-4" />
+                Cancel
+              </Button>
+            )}
+            <Button size="sm" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
+              <Save className="mr-2 h-4 w-4" />
+              {saveMutation.isPending ? 'Saving...' : 'Save'}
+            </Button>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleExport} disabled={!cv}>
+              <Download className="mr-2 h-4 w-4" />
+              Export DOCX
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit
+            </Button>
+          </div>
+        )}
       </div>
 
-      <div data-color-mode="light">
-        <MDEditor
-          value={content}
-          onChange={(v) => setContent(v ?? '')}
-          height={500}
-          preview="live"
-        />
-      </div>
+      {editing ? (
+        <div data-color-mode="light">
+          <MDEditor
+            value={content}
+            onChange={(v) => setContent(v ?? '')}
+            height={500}
+            preview="live"
+          />
+        </div>
+      ) : (
+        <div
+          data-color-mode="light"
+          className="prose prose-sm max-w-none rounded-md border p-6"
+        >
+          <MDEditor.Markdown source={content} />
+        </div>
+      )}
     </div>
   )
 }

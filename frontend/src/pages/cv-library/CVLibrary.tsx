@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { formatDate } from '@/lib/utils'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 interface EditorState {
   id: string
@@ -23,6 +24,7 @@ interface EditorState {
 }
 
 export function CVLibrary() {
+  useDocumentTitle('CV Library')
   const qc = useQueryClient()
   const [editingItems, setEditingItems] = useState<Record<string, EditorState>>({})
   const [newDialogOpen, setNewDialogOpen] = useState(false)

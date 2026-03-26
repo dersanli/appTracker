@@ -7,8 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { formatDate } from '@/lib/utils'
 import { Briefcase, CalendarDays, TrendingUp, CheckCircle } from 'lucide-react'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 export function Dashboard() {
+  useDocumentTitle('Dashboard')
   const { data, isLoading, error } = useQuery<DashboardData>({
     queryKey: ['dashboard'],
     queryFn: () => api.get('/dashboard').then((r) => r.data),

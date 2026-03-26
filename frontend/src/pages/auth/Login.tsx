@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { toast } from 'sonner'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -25,6 +26,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>
 
 export function Login() {
+  useDocumentTitle('Login')
   const { signIn } = useAuth()
   const navigate = useNavigate()
 

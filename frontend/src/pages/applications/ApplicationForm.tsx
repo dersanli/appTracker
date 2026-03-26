@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -387,6 +388,7 @@ function ClientCombobox({ value, onChange, clients, onAddNew }: ClientComboboxPr
 export function ApplicationForm() {
   const { id } = useParams()
   const isEdit = Boolean(id)
+  useDocumentTitle(isEdit ? 'Edit Application' : 'New Application')
   const navigate = useNavigate()
   const qc = useQueryClient()
   const [recruiterModalOpen, setRecruiterModalOpen] = useState(false)

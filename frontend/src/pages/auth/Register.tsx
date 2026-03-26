@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { toast } from 'sonner'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 const registerSchema = z
   .object({
@@ -31,6 +32,7 @@ const registerSchema = z
 type RegisterFormValues = z.infer<typeof registerSchema>
 
 export function Register() {
+  useDocumentTitle('Register')
   const { signUp } = useAuth()
   const navigate = useNavigate()
 

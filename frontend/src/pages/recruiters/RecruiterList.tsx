@@ -33,6 +33,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { toast } from 'sonner'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 const recruiterSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -45,6 +46,7 @@ const recruiterSchema = z.object({
 type RecruiterFormValues = z.infer<typeof recruiterSchema>
 
 export function RecruiterList() {
+  useDocumentTitle('Recruiters')
   const qc = useQueryClient()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingRecruiter, setEditingRecruiter] = useState<Recruiter | null>(null)

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useParams, Link } from 'react-router-dom'
-import { Pencil } from 'lucide-react'
+import { Pencil, LayoutDashboard, FileText, BookOpen, CalendarDays, History } from 'lucide-react'
 import api from '@/lib/api'
 import type { Application } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ import { CVTab } from './tabs/CVTab'
 import { PrepNotesTab } from './tabs/PrepNotesTab'
 import { DatesTab } from './tabs/DatesTab'
 import { StatusHistoryTab } from './tabs/StatusHistoryTab'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 export function ApplicationDetail() {
   const { id } = useParams<{ id: string }>()
@@ -20,6 +21,8 @@ export function ApplicationDetail() {
     queryFn: () => api.get(`/applications/${id}`).then((r) => r.data),
     enabled: Boolean(id),
   })
+
+  useDocumentTitle(application?.role ?? 'Application Details')
 
   if (isLoading) {
     return (
@@ -43,8 +46,10 @@ export function ApplicationDetail() {
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-2xl font-bold">{application.role}</h2>
-          {application.client && (
-            <p className="text-muted-foreground">{application.client.company_name}</p>
+          {(application.client || application.recruiter) && (
+            <p className="text-muted-foreground">
+              {[application.client?.company_name, application.recruiter?.name].filter(Boolean).join(' — ')}
+            </p>
           )}
           <div className="mt-2">
             <StatusBadge status={application.current_status} />
@@ -61,11 +66,11 @@ export function ApplicationDetail() {
       {/* Tabs */}
       <Tabs defaultValue="overview">
         <TabsList className="flex-wrap h-auto">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="cv">CV</TabsTrigger>
-          <TabsTrigger value="prep-notes">Prep Notes</TabsTrigger>
-          <TabsTrigger value="dates">Dates</TabsTrigger>
-          <TabsTrigger value="status-history">Status History</TabsTrigger>
+          <TabsTrigger value="overview"><LayoutDashboard className="mr-2 h-4 w-4" />Overview</TabsTrigger>
+          <TabsTrigger value="cv"><FileText className="mr-2 h-4 w-4" />CV</TabsTrigger>
+          <TabsTrigger value="prep-notes"><BookOpen className="mr-2 h-4 w-4" />Prep Notes</TabsTrigger>
+          <TabsTrigger value="dates"><CalendarDays className="mr-2 h-4 w-4" />Dates</TabsTrigger>
+          <TabsTrigger value="status-history"><History className="mr-2 h-4 w-4" />Status History</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4">

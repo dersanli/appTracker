@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { toast } from 'sonner'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 const recruiterSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -40,6 +41,8 @@ export function RecruiterDetail() {
     queryFn: () => api.get(`/recruiters/${id}`).then((r) => r.data),
     enabled: Boolean(id),
   })
+
+  useDocumentTitle(recruiter?.name ?? 'Recruiter')
 
   const form = useForm<RecruiterFormValues>({
     resolver: zodResolver(recruiterSchema),

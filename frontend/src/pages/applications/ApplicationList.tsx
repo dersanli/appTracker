@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/table'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { formatDate } from '@/lib/utils'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 const STATUS_OPTIONS: { value: ApplicationStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All Statuses' },
@@ -58,6 +59,7 @@ const WORK_OPTIONS: { value: WorkArrangement | 'all'; label: string }[] = [
 ]
 
 export function ApplicationList() {
+  useDocumentTitle('Applications')
   const [filters, setFilters] = useState<ApplicationFilters>({})
 
   const queryParams = new URLSearchParams()

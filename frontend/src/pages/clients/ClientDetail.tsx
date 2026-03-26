@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { toast } from 'sonner'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 const clientSchema = z.object({
   company_name: z.string().min(1, 'Company name is required'),
@@ -41,6 +42,8 @@ export function ClientDetail() {
     queryFn: () => api.get(`/clients/${id}`).then((r) => r.data),
     enabled: Boolean(id),
   })
+
+  useDocumentTitle(client?.company_name ?? 'Client')
 
   const form = useForm<ClientFormValues>({
     resolver: zodResolver(clientSchema),

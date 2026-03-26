@@ -33,6 +33,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { toast } from 'sonner'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 const clientSchema = z.object({
   company_name: z.string().min(1, 'Company name is required'),
@@ -46,6 +47,7 @@ const clientSchema = z.object({
 type ClientFormValues = z.infer<typeof clientSchema>
 
 export function ClientList() {
+  useDocumentTitle('Clients')
   const qc = useQueryClient()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | null>(null)
