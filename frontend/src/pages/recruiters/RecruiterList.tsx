@@ -120,7 +120,8 @@ export function RecruiterList() {
         </Button>
       </div>
 
-      <div className="rounded-md border">
+      {/* Desktop table */}
+      <div className="hidden rounded-md border md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -176,6 +177,39 @@ export function RecruiterList() {
         </Table>
       </div>
 
+      {/* Mobile card list */}
+      <div className="space-y-2 md:hidden">
+        {isLoading ? (
+          <p className="py-12 text-center text-muted-foreground">Loading...</p>
+        ) : data?.length === 0 ? (
+          <p className="py-12 text-center text-muted-foreground">No recruiters yet.</p>
+        ) : (
+          data?.map((r) => (
+            <div key={r.id} className="flex items-center justify-between rounded-lg border bg-card p-4">
+              <div className="min-w-0">
+                <Link to={`/recruiters/${r.id}`} className="font-medium hover:underline">
+                  {r.name}
+                </Link>
+                {r.agency_name && (
+                  <p className="text-sm text-muted-foreground">{r.agency_name}</p>
+                )}
+                {r.email && (
+                  <p className="text-sm text-muted-foreground">{r.email}</p>
+                )}
+              </div>
+              <div className="flex shrink-0 gap-1">
+                <Button variant="ghost" size="icon" onClick={() => openEdit(r)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate(r.id)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -190,7 +224,7 @@ export function RecruiterList() {
                   <FormMessage />
                 </FormItem>
               )} />
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField control={form.control} name="agency_name" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Agency</FormLabel>

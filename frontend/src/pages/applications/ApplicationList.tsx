@@ -152,8 +152,8 @@ export function ApplicationList() {
         </Select>
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border">
+      {/* Desktop table */}
+      <div className="hidden rounded-md border md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -211,6 +211,40 @@ export function ApplicationList() {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile card list */}
+      <div className="space-y-2 md:hidden">
+        {isLoading ? (
+          <p className="py-12 text-center text-muted-foreground">Loading...</p>
+        ) : data?.length === 0 ? (
+          <p className="py-12 text-center text-muted-foreground">No applications found.</p>
+        ) : (
+          data?.map((app) => (
+            <Link
+              key={app.id}
+              to={`/applications/${app.id}`}
+              className="block rounded-lg border bg-card p-4 hover:bg-accent/50"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-medium leading-snug">{app.role}</p>
+                <StatusBadge status={app.current_status} />
+              </div>
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                {app.job_type && (
+                  <span className="capitalize">{app.job_type.replace(/_/g, ' ')}</span>
+                )}
+                {app.work_arrangement && (
+                  <span className="capitalize">{app.work_arrangement}</span>
+                )}
+                {app.salary_amount != null && (
+                  <span>£{app.salary_amount.toLocaleString()}</span>
+                )}
+                <span>{formatDate(app.created_at)}</span>
+              </div>
+            </Link>
+          ))
+        )}
       </div>
     </div>
   )

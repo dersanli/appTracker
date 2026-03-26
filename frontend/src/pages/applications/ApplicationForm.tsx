@@ -117,7 +117,7 @@ function QuickAddRecruiterModal({
             <label className="text-sm font-medium">Agency</label>
             <Input placeholder="Acme Recruitment" {...form.register('agency_name')} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-2">
               <label className="text-sm font-medium">Email</label>
               <Input type="email" placeholder="jane@acme.com" {...form.register('email')} />
@@ -203,7 +203,7 @@ function QuickAddClientModal({
             <label className="text-sm font-medium">Contact Name</label>
             <Input placeholder="John Doe" {...form.register('contact_name')} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-2">
               <label className="text-sm font-medium">Email</label>
               <Input type="email" placeholder="john@acme.com" {...form.register('email')} />
@@ -494,7 +494,7 @@ export function ApplicationForm() {
                 )}
               />
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <FormField
                   control={form.control}
                   name="job_type"

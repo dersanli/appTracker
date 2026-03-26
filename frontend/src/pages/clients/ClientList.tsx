@@ -123,7 +123,8 @@ export function ClientList() {
         </Button>
       </div>
 
-      <div className="rounded-md border">
+      {/* Desktop table */}
+      <div className="hidden rounded-md border md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -188,6 +189,36 @@ export function ClientList() {
         </Table>
       </div>
 
+      {/* Mobile card list */}
+      <div className="space-y-2 md:hidden">
+        {isLoading ? (
+          <p className="py-12 text-center text-muted-foreground">Loading...</p>
+        ) : data?.length === 0 ? (
+          <p className="py-12 text-center text-muted-foreground">No clients yet.</p>
+        ) : (
+          data?.map((c) => (
+            <div key={c.id} className="flex items-center justify-between rounded-lg border bg-card p-4">
+              <div className="min-w-0">
+                <Link to={`/clients/${c.id}`} className="font-medium hover:underline">
+                  {c.company_name}
+                </Link>
+                {c.contact_name && (
+                  <p className="text-sm text-muted-foreground">{c.contact_name}</p>
+                )}
+              </div>
+              <div className="flex shrink-0 gap-1">
+                <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate(c.id)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -209,7 +240,7 @@ export function ClientList() {
                   <FormMessage />
                 </FormItem>
               )} />
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField control={form.control} name="email" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email</FormLabel>

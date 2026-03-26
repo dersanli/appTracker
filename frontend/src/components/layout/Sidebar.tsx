@@ -23,7 +23,12 @@ const navItems = [
   { to: '/prep-notes', label: 'Prep Notes', icon: BookOpen },
 ]
 
-export function Sidebar() {
+interface SidebarProps {
+  open: boolean
+  onClose: () => void
+}
+
+export function Sidebar({ open, onClose }: SidebarProps) {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
 
@@ -35,7 +40,12 @@ export function Sidebar() {
   const initials = user?.email ? user.email.slice(0, 2).toUpperCase() : 'U'
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r bg-card">
+    <aside
+      className={cn(
+        'fixed inset-y-0 left-0 z-30 flex h-screen w-64 flex-col border-r bg-card transition-transform duration-200 lg:static lg:translate-x-0',
+        open ? 'translate-x-0' : '-translate-x-full'
+      )}
+    >
       {/* Logo */}
       <div className="flex h-16 items-center px-6">
         <Briefcase className="mr-2 h-6 w-6 text-primary" />
@@ -51,6 +61,7 @@ export function Sidebar() {
             <li key={to}>
               <NavLink
                 to={to}
+                onClick={onClose}
                 className={({ isActive }) =>
                   cn(
                     'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',

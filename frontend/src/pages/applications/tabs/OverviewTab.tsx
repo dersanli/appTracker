@@ -9,7 +9,7 @@ interface OverviewTabProps {
 export function OverviewTab({ application }: OverviewTabProps) {
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+      <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
         <Field label="Role" value={application.role} />
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Status</p>

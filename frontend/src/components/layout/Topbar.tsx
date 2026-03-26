@@ -1,4 +1,6 @@
 import { useLocation } from 'react-router-dom'
+import { Menu } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 const routeTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
@@ -19,12 +21,25 @@ function getTitle(pathname: string): string {
   return 'AppTracker'
 }
 
-export function Topbar() {
+interface TopbarProps {
+  onMenuClick: () => void
+}
+
+export function Topbar({ onMenuClick }: TopbarProps) {
   const { pathname } = useLocation()
   const title = getTitle(pathname)
 
   return (
-    <header className="flex h-16 items-center border-b bg-background px-6">
+    <header className="flex h-16 items-center border-b bg-background px-4 md:px-6">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="mr-3 lg:hidden"
+        onClick={onMenuClick}
+        aria-label="Open menu"
+      >
+        <Menu className="h-5 w-5" />
+      </Button>
       <h1 className="text-lg font-semibold">{title}</h1>
     </header>
   )
