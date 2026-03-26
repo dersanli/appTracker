@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -411,27 +411,22 @@ export function ApplicationForm() {
   const form = useForm<ApplicationFormValues>({
     resolver: zodResolver(applicationSchema),
     defaultValues,
+    values: existing ? {
+      role: existing.role,
+      job_description: existing.job_description ?? '',
+      job_type: existing.job_type as JobType | null | undefined,
+      work_arrangement: existing.work_arrangement as WorkArrangement | null | undefined,
+      hybrid_days_per_week: existing.hybrid_days_per_week != null
+        ? String(existing.hybrid_days_per_week)
+        : '',
+      salary_amount: existing.salary_amount != null ? String(existing.salary_amount) : '',
+      salary_type: existing.salary_type as SalaryType | null | undefined,
+      current_status: existing.current_status as ApplicationStatus,
+      notes: existing.notes ?? '',
+      recruiter_id: existing.recruiter_id ?? '',
+      client_id: existing.client_id ?? '',
+    } : undefined,
   })
-
-  useEffect(() => {
-    if (existing) {
-      form.reset({
-        role: existing.role,
-        job_description: existing.job_description ?? '',
-        job_type: existing.job_type as JobType | null | undefined,
-        work_arrangement: existing.work_arrangement as WorkArrangement | null | undefined,
-        hybrid_days_per_week: existing.hybrid_days_per_week != null
-          ? String(existing.hybrid_days_per_week)
-          : '',
-        salary_amount: existing.salary_amount != null ? String(existing.salary_amount) : '',
-        salary_type: existing.salary_type as SalaryType | null | undefined,
-        current_status: existing.current_status as ApplicationStatus,
-        notes: existing.notes ?? '',
-        recruiter_id: existing.recruiter_id ?? '',
-        client_id: existing.client_id ?? '',
-      })
-    }
-  }, [existing, form])
 
   const mutation = useMutation({
     mutationFn: (values: ApplicationFormValues) => {

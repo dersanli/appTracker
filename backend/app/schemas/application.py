@@ -40,7 +40,25 @@ class ApplicationUpdate(BaseModel):
     hybrid_days_per_week: int | None = None
     salary_type: SalaryType | None = None
     salary_amount: Decimal | None = None
+    current_status: ApplicationStatus | None = None
     notes: str | None = None
+
+
+class RecruiterNested(BaseModel):
+    id: UUID
+    name: str
+    agency_name: str | None = None
+    email: str | None = None
+    phone: str | None = None
+    model_config = {"from_attributes": True}
+
+
+class ClientNested(BaseModel):
+    id: UUID
+    company_name: str
+    contact_name: str | None = None
+    email: str | None = None
+    model_config = {"from_attributes": True}
 
 
 class ApplicationRead(ApplicationBase):
@@ -49,6 +67,8 @@ class ApplicationRead(ApplicationBase):
     current_status: ApplicationStatus
     created_at: datetime
     updated_at: datetime
+    recruiter: RecruiterNested | None = None
+    client: ClientNested | None = None
 
     model_config = {"from_attributes": True}
 

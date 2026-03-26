@@ -2,9 +2,16 @@ import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import MDEditor from '@uiw/react-md-editor'
 import api from '@/lib/api'
-import type { ApplicationCV } from '@/types'
+import type { ApplicationCV, CVLibraryItem } from '@/types'
 import { Button } from '@/components/ui/button'
-import { Save, Download } from 'lucide-react'
+import { Save, Download, Copy } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { toast } from 'sonner'
 
 interface CVTabProps {
@@ -27,6 +34,13 @@ export function CVTab({ applicationId }: CVTabProps) {
   })
 
   const [content, setContent] = useState('')
+  const [libraryOpen, setLibraryOpen] = useState(false)
+
+  const { data: libraryItems } = useQuery<CVLibraryItem[]>({
+    queryKey: ['cv-library'],
+    queryFn: () => api.get('/cv-library').then((r) => r.data),
+    enabled: libraryOpen,
+  })
 
   useEffect(() => {
     if (cv) setContent(cv.content)
@@ -74,9 +88,49 @@ export function CVTab({ applicationId }: CVTabProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium text-muted-foreground">
-          {cv ? cv.name : 'No CV yet — write one below'}
+          {cv ? cv.name : 'No CV yet — write one below or copy from library'}
         </h3>
         <div className="flex gap-2">
+          <Dialog open={libraryOpen} onOpenChange={setLibraryOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Copy className="mr-2 h-4 w-4" />
+                Copy from Library
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Copy from CV Library</DialogTitle>
+              </DialogHeader>
+              <div className="mt-2 max-h-96 overflow-y-auto space-y-2">
+                {libraryItems?.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No CVs in library.</p>
+                )}
+                {libraryItems?.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between rounded-md border p-3"
+                  >
+                    <div>
+                      <p className="text-sm font-medium">{item.name}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-1">{item.content}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setContent(item.content)
+                        setLibraryOpen(false)
+                        toast.success(`Copied "${item.name}" — save to apply`)
+                      }}
+                    >
+                      Copy
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
           <Button
             variant="outline"
             size="sm"

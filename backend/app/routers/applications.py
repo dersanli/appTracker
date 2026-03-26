@@ -7,6 +7,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select, func
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -49,7 +50,9 @@ async def _get_owned_application(
     db: AsyncSession, application_id: UUID, user_id: str
 ) -> Application:
     result = await db.execute(
-        select(Application).where(Application.id == application_id)
+        select(Application)
+        .options(selectinload(Application.recruiter), selectinload(Application.client))
+        .where(Application.id == application_id)
     )
     app = result.scalar_one_or_none()
     if app is None:
@@ -73,7 +76,7 @@ async def list_applications(
     db: AsyncSession = Depends(get_db),
     user_id: str = Depends(get_current_user),
 ):
-    q = select(Application).where(Application.user_id == user_id)
+    q = select(Application).options(selectinload(Application.recruiter), selectinload(Application.client)).where(Application.user_id == user_id)
 
     if application_status is not None:
         q = q.where(Application.current_status == application_status)
@@ -133,8 +136,15 @@ async def update_application(
     user_id: str = Depends(get_current_user),
 ):
     app = await _get_owned_application(db, application_id, user_id)
+    old_status = app.current_status
     for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(app, field, value)
+    if payload.current_status is not None and payload.current_status != old_status:
+        db.add(ApplicationStatusHistory(
+            application_id=app.id,
+            status=payload.current_status,
+            changed_at=datetime.now(timezone.utc),
+        ))
     await db.flush()
     await db.refresh(app)
     return app
