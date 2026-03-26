@@ -24,7 +24,7 @@ interface StatusBadgeProps {
 export function StatusBadge({ status, className }: StatusBadgeProps) {
   const config = statusConfig[status] ?? { label: status, className: '' }
   return (
-    <Badge variant="outline" className={cn(config.className, className)}>
+    <Badge variant="outline" className={cn(config.className, 'whitespace-nowrap', className)}>
       {config.label}
     </Badge>
   )
