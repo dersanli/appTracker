@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import MDEditor from '@uiw/react-md-editor'
-import { Plus, Save, Trash2 } from 'lucide-react'
+import { Plus, Save, Trash2, ArrowLeft } from 'lucide-react'
 import api from '@/lib/api'
 import type { CVLibraryItem } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -30,6 +30,7 @@ export function CVLibrary() {
   const [newDialogOpen, setNewDialogOpen] = useState(false)
   const [newName, setNewName] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [mobileShowEditor, setMobileShowEditor] = useState(false)
 
   const { data: items, isLoading } = useQuery<CVLibraryItem[]>({
     queryKey: ['cv-library'],
@@ -52,6 +53,7 @@ export function CVLibrary() {
       setNewDialogOpen(false)
       setNewName('')
       setSelectedId(newItem.id)
+      setMobileShowEditor(true)
       toast.success('CV created')
     },
     onError: () => toast.error('Failed to create CV'),
@@ -77,6 +79,7 @@ export function CVLibrary() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['cv-library'] })
       setSelectedId(null)
+      setMobileShowEditor(false)
       toast.success('CV deleted')
     },
     onError: () => toast.error('Failed to delete CV'),
@@ -99,131 +102,155 @@ export function CVLibrary() {
 
   const editing = selectedItem ? editingItems[selectedItem.id] : undefined
 
-  return (
-    <div className="flex gap-6 h-full">
-      {/* Sidebar list */}
-      <div className="w-64 shrink-0 space-y-2">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold">CV Library</h3>
-          <Button size="sm" variant="outline" onClick={() => setNewDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
-        {items?.length === 0 && (
-          <p className="text-sm text-muted-foreground">No CVs yet. Create one.</p>
-        )}
-        {items?.map((item) => (
-          <button
-            key={item.id}
-            className={`w-full text-left rounded-md px-3 py-2 text-sm transition-colors ${
-              selectedId === item.id
-                ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-accent hover:text-accent-foreground'
-            }`}
-            onClick={() => setSelectedId(item.id)}
-          >
-            <div className="font-medium truncate">{item.name}</div>
-            <div className={`text-xs ${selectedId === item.id ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-              {formatDate(item.updated_at)}
+  const listPanel = (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold">CV Library</h3>
+        <Button size="sm" variant="outline" onClick={() => setNewDialogOpen(true)}>
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+      {items?.length === 0 && (
+        <p className="text-sm text-muted-foreground">No CVs yet. Create one.</p>
+      )}
+      {items?.map((item) => (
+        <button
+          key={item.id}
+          className={`w-full text-left rounded-md px-3 py-2 text-sm transition-colors ${
+            selectedId === item.id
+              ? 'bg-primary text-primary-foreground'
+              : 'hover:bg-accent hover:text-accent-foreground'
+          }`}
+          onClick={() => {
+            setSelectedId(item.id)
+            setMobileShowEditor(true)
+          }}
+        >
+          <div className="font-medium truncate">{item.name}</div>
+          <div className={`text-xs ${selectedId === item.id ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+            {formatDate(item.updated_at)}
+          </div>
+        </button>
+      ))}
+    </div>
+  )
+
+  const editorPanel = selectedItem ? (
+    <div className="flex-1 space-y-4">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-2 pb-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="shrink-0 md:hidden"
+              onClick={() => setMobileShowEditor(false)}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            {editing ? (
+              <Input
+                value={editing.name}
+                onChange={(e) =>
+                  setEditingItems((prev) => ({
+                    ...prev,
+                    [selectedItem.id]: { ...prev[selectedItem.id], name: e.target.value },
+                  }))
+                }
+                className="h-7 text-base font-semibold max-w-xs"
+              />
+            ) : (
+              <h3 className="text-base font-semibold truncate">{selectedItem.name}</h3>
+            )}
+          </div>
+          <div className="flex shrink-0 gap-2">
+            {editing ? (
+              <>
+                <Button
+                  size="sm"
+                  onClick={() =>
+                    updateMutation.mutate({
+                      id: selectedItem.id,
+                      name: editing.name,
+                      content: editing.content,
+                    })
+                  }
+                  disabled={updateMutation.isPending}
+                >
+                  <Save className="mr-2 h-4 w-4" />
+                  Save
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    setEditingItems((prev) => {
+                      const next = { ...prev }
+                      delete next[selectedItem.id]
+                      return next
+                    })
+                  }
+                >
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button size="sm" variant="outline" onClick={() => startEdit(selectedItem)}>
+                  Edit
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => deleteMutation.mutate(selectedItem.id)}
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {editing ? (
+            <div data-color-mode="light">
+              <MDEditor
+                value={editing.content}
+                onChange={(v) =>
+                  setEditingItems((prev) => ({
+                    ...prev,
+                    [selectedItem.id]: { ...prev[selectedItem.id], content: v ?? '' },
+                  }))
+                }
+                height={500}
+                preview="live"
+              />
             </div>
-          </button>
-        ))}
+          ) : (
+            <div data-color-mode="light" className="prose prose-sm max-w-none">
+              <MDEditor.Markdown source={selectedItem.content || '*No content yet. Click Edit to start writing.*'} />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  ) : (
+    <div className="flex-1 flex items-center justify-center text-muted-foreground">
+      Select a CV or create a new one.
+    </div>
+  )
+
+  return (
+    <>
+      {/* Desktop: two-pane side by side */}
+      <div className="hidden md:flex gap-6 h-full">
+        <div className="w-64 shrink-0">{listPanel}</div>
+        {editorPanel}
       </div>
 
-      {/* Editor */}
-      {selectedItem ? (
-        <div className="flex-1 space-y-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              {editing ? (
-                <Input
-                  value={editing.name}
-                  onChange={(e) =>
-                    setEditingItems((prev) => ({
-                      ...prev,
-                      [selectedItem.id]: { ...prev[selectedItem.id], name: e.target.value },
-                    }))
-                  }
-                  className="h-7 text-base font-semibold max-w-xs"
-                />
-              ) : (
-                <h3 className="text-base font-semibold">{selectedItem.name}</h3>
-              )}
-              <div className="flex gap-2">
-                {editing ? (
-                  <>
-                    <Button
-                      size="sm"
-                      onClick={() =>
-                        updateMutation.mutate({
-                          id: selectedItem.id,
-                          name: editing.name,
-                          content: editing.content,
-                        })
-                      }
-                      disabled={updateMutation.isPending}
-                    >
-                      <Save className="mr-2 h-4 w-4" />
-                      Save
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        setEditingItems((prev) => {
-                          const next = { ...prev }
-                          delete next[selectedItem.id]
-                          return next
-                        })
-                      }
-                    >
-                      Cancel
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button size="sm" variant="outline" onClick={() => startEdit(selectedItem)}>
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => deleteMutation.mutate(selectedItem.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {editing ? (
-                <div data-color-mode="light">
-                  <MDEditor
-                    value={editing.content}
-                    onChange={(v) =>
-                      setEditingItems((prev) => ({
-                        ...prev,
-                        [selectedItem.id]: { ...prev[selectedItem.id], content: v ?? '' },
-                      }))
-                    }
-                    height={500}
-                    preview="live"
-                  />
-                </div>
-              ) : (
-                <div data-color-mode="light" className="prose prose-sm max-w-none">
-                  <MDEditor.Markdown source={selectedItem.content || '*No content yet. Click Edit to start writing.*'} />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      ) : (
-        <div className="flex-1 flex items-center justify-center text-muted-foreground">
-          Select a CV or create a new one.
-        </div>
-      )}
+      {/* Mobile: single pane, toggle between list and editor */}
+      <div className="md:hidden">
+        {mobileShowEditor && selectedItem ? editorPanel : listPanel}
+      </div>
 
       {/* New CV dialog */}
       <Dialog open={newDialogOpen} onOpenChange={setNewDialogOpen}>
@@ -253,6 +280,6 @@ export function CVLibrary() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   )
 }
