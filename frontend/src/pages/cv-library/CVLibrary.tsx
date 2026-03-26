@@ -23,14 +23,16 @@ interface EditorState {
   content: string
 }
 
-const isMobile = () => window.innerWidth < 768
+const getEditorHeight = () =>
+  window.innerWidth < 768 ? Math.max(300, window.innerHeight - 220) : 500
 const subscribe = (cb: () => void) => {
   window.addEventListener('resize', cb)
   return () => window.removeEventListener('resize', cb)
 }
 
 export function CVLibrary() {
-  const mobile = useSyncExternalStore(subscribe, isMobile, () => false)
+  const editorHeight = useSyncExternalStore(subscribe, getEditorHeight, () => 500)
+  const mobile = editorHeight < 500
   useDocumentTitle('CV Library')
   const qc = useQueryClient()
   const [editingItems, setEditingItems] = useState<Record<string, EditorState>>({})
@@ -228,7 +230,7 @@ export function CVLibrary() {
                     [selectedItem.id]: { ...prev[selectedItem.id], content: v ?? '' },
                   }))
                 }
-                height={500}
+                height={editorHeight}
                 preview={mobile ? 'edit' : 'live'}
               />
             </div>
