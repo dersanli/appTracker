@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useSyncExternalStore } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import MDEditor from '@uiw/react-md-editor'
 import api from '@/lib/api'
@@ -18,7 +18,14 @@ interface CVTabProps {
   applicationId: string
 }
 
+const isMobile = () => window.innerWidth < 768
+const subscribe = (cb: () => void) => {
+  window.addEventListener('resize', cb)
+  return () => window.removeEventListener('resize', cb)
+}
+
 export function CVTab({ applicationId }: CVTabProps) {
+  const mobile = useSyncExternalStore(subscribe, isMobile, () => false)
   const qc = useQueryClient()
 
   const { data: cv, isLoading } = useQuery<ApplicationCV | null>({
@@ -177,7 +184,7 @@ export function CVTab({ applicationId }: CVTabProps) {
             value={content}
             onChange={(v) => setContent(v ?? '')}
             height={500}
-            preview="live"
+            preview={mobile ? 'edit' : 'live'}
           />
         </div>
       ) : (
