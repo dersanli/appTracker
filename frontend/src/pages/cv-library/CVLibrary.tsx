@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useSyncExternalStore } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import MDEditor from '@uiw/react-md-editor'
 import { Plus, Save, Trash2, ArrowLeft } from 'lucide-react'
@@ -23,7 +23,14 @@ interface EditorState {
   content: string
 }
 
+const isMobile = () => window.innerWidth < 768
+const subscribe = (cb: () => void) => {
+  window.addEventListener('resize', cb)
+  return () => window.removeEventListener('resize', cb)
+}
+
 export function CVLibrary() {
+  const mobile = useSyncExternalStore(subscribe, isMobile, () => false)
   useDocumentTitle('CV Library')
   const qc = useQueryClient()
   const [editingItems, setEditingItems] = useState<Record<string, EditorState>>({})
@@ -222,7 +229,7 @@ export function CVLibrary() {
                   }))
                 }
                 height={500}
-                preview="live"
+                preview={mobile ? 'edit' : 'live'}
               />
             </div>
           ) : (
