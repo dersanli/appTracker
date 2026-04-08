@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import MDEditor from '@uiw/react-md-editor'
 import { Plus, Save, Trash2, Copy, Pencil, X } from 'lucide-react'
@@ -16,11 +16,20 @@ import {
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
+const getIsMobile = () => window.innerWidth < 768
+const getEditorHeight = () => Math.max(300, window.innerHeight - 300)
+const subscribe = (cb: () => void) => {
+  window.addEventListener('resize', cb)
+  return () => window.removeEventListener('resize', cb)
+}
+
 interface PrepNotesTabProps {
   applicationId: string
 }
 
 export function PrepNotesTab({ applicationId }: PrepNotesTabProps) {
+  const mobile = useSyncExternalStore(subscribe, getIsMobile, () => false)
+  const editorHeight = useSyncExternalStore(subscribe, getEditorHeight, () => 400)
   const qc = useQueryClient()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [editing, setEditing] = useState(false)
@@ -113,10 +122,14 @@ export function PrepNotesTab({ applicationId }: PrepNotesTabProps) {
     )
   }
 
+  // On mobile, show either the list or the note content, not both
+  const showList = !mobile || !selected
+  const showContent = !mobile || !!selected
+
   return (
-    <div className="flex gap-4 min-h-[500px]">
-      {/* Left: note list */}
-      <div className="w-48 shrink-0 flex flex-col gap-1">
+    <div className={cn('gap-4 min-h-[500px]', mobile ? 'flex flex-col' : 'flex')}>
+      {/* List panel */}
+      <div className={cn('flex flex-col gap-1', mobile ? (showList ? 'block' : 'hidden') : 'w-48 shrink-0')}>
         <div className="flex gap-1 mb-1">
           <Dialog open={addOpen} onOpenChange={setAddOpen}>
             <DialogTrigger asChild>
@@ -209,14 +222,20 @@ export function PrepNotesTab({ applicationId }: PrepNotesTabProps) {
         ))}
       </div>
 
-      {/* Right: note content */}
-      <div className="flex-1 min-w-0">
+      {/* Content panel */}
+      <div className={cn('flex-1 min-w-0', mobile && !showContent && 'hidden')}>
         {!selected ? (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground border rounded-md">
             Select a note to view
           </div>
         ) : (
           <div className="space-y-3">
+            {mobile && (
+              <Button variant="outline" size="sm" onClick={() => { setSelectedId(null); setEditing(false) }}>
+                <X className="mr-1 h-4 w-4" />
+                Back
+              </Button>
+            )}
             <div className="flex items-center justify-between gap-2">
               {editing ? (
                 <Input
@@ -263,8 +282,8 @@ export function PrepNotesTab({ applicationId }: PrepNotesTabProps) {
                 <MDEditor
                   value={editContent}
                   onChange={(v) => setEditContent(v ?? '')}
-                  height={400}
-                  preview="live"
+                  height={editorHeight}
+                  preview={mobile ? 'edit' : 'live'}
                 />
               </div>
             ) : (
